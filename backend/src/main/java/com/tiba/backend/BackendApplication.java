@@ -7,9 +7,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootApplication
+@EnableJpaAuditing
 public class BackendApplication {
 
   public static void main(String[] args) {
@@ -24,7 +26,7 @@ public class BackendApplication {
         User admin = new User();
         admin.setUsername("admin");
         admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setRole(Role.ADMIN);
+        admin.setRole(Role.ROLE_ADMIN);
 
         userRepository.save(admin);
 
@@ -36,7 +38,7 @@ public class BackendApplication {
         User user1 = new User();
         user1.setUsername("user");
         user1.setPassword(passwordEncoder.encode("user123"));
-        user1.setRole(Role.USER);
+        user1.setRole(Role.ROLE_USER);
 
         userRepository.save(user1);
 
