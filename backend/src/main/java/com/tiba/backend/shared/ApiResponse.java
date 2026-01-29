@@ -15,8 +15,24 @@ public record ApiResponse<T>(
     List<FieldErrorResponse> errors,
     Instant timestamp) {
 
-  public static <T> ApiResponse<T> success(T data, String message) {
-    return new ApiResponse<>(true, message, "SUCCESS", data, null, Instant.now());
+  public static <T> ApiResponse<T> created(T data) {
+    return new ApiResponse<>(
+        true, "Resource created successfully", "CREATED", data, null, Instant.now());
+  }
+
+  public static <T> ApiResponse<T> success(T data) {
+    return new ApiResponse<>(
+        true, "Resource retrieved successfully", "SUCCESS", data, null, Instant.now());
+  }
+
+  public static ApiResponse<Void> deleted() {
+    return new ApiResponse<>(
+        true, "Resource deleted successfully", "DELETED", null, null, Instant.now());
+  }
+
+  public static <T> ApiResponse<T> updated(T data) {
+    return new ApiResponse<>(
+        true, "Resource updated successfully", "UPDATED", data, null, Instant.now());
   }
 
   public static ApiResponse<Void> validationError(List<FieldErrorResponse> errors) {

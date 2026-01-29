@@ -6,11 +6,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -33,18 +37,10 @@ public class GlobalExceptionHandler {
         .body(new AuthResponse(false, "An internal server error occurred", "SYS_001"));
   }
 
-  @ExceptionHandler(ValidationException.class)
-  public ResponseEntity<ApiResponse<Void>> handleValidation(ValidationException ex) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-        .body(ApiResponse.validationError(ex.getErrors()));
-  }
-
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex) {
-
     ApiResponse<Void> response =
         new ApiResponse<>(false, ex.getMessage(), ex.getCode(), null, null, Instant.now());
-
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
   }
 
@@ -58,5 +54,29 @@ public class GlobalExceptionHandler {
   public ResponseEntity<AuthResponse> handleJwtException(io.jsonwebtoken.JwtException ex) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(new AuthResponse(false, "Invalid token", null, "AUTH_003", LocalDateTime.now()));
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+
+    List<FieldErrorResponse> errors =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
+            .toList();
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.validationError(errors));
+  }
+
+  @ExceptionHandler(DataAlreadyExistsException.class)
+  public ResponseEntity<ApiResponse<Void>> handleDataAlreadyExists(DataAlreadyExistsException ex) {
+    ApiResponse<Void> response =
+        new ApiResponse<>(false, ex.getMessage(), "DUPLICATE_RESOURCE", null, null, Instant.now());
+    return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+  }
+
+  @ExceptionHandler(ValidationException.class)
+  public ResponseEntity<ApiResponse<Void>> handleCustomValidation(ValidationException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ApiResponse.validationError(ex.getErrors()));
   }
 }
